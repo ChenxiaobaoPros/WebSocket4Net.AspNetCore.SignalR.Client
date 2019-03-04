@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WebSocket4Net.AspNetCore.SignalR.Client\WebSocket4Net.AspNetCore.SignalR.Client.csproj" />
+    <ProjectReference Include="..\..\src\WebSocket4Net.AspNetCore.SignalR.Core\WebSocket4Net.AspNetCore.SignalR.Core.csproj" />
+  </ItemGroup>
+
+</Project>
