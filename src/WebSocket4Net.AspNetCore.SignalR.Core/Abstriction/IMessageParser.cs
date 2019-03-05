@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WebSocket4Net.AspNetCore.SignalR.Core.Protocol.Messages;
-using WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages;
-using WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages.Invocation;
+﻿using WebSocket4Net.AspNetCore.SignalR.Core.Protocol.Messages;
 
 namespace WebSocket4Net.AspNetCore.SignalR.Core.Abstriction
 {
-    public interface IMessageParser
+    public interface IMessageConventer
     {
         string ProtocolName { get; }
         byte[] GetBytes(Message message);

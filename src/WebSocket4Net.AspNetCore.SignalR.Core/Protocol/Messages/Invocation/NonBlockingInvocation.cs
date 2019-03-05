@@ -1,10 +1,7 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using WebSocket4Net.AspNetCore.SignalR.Core.Protocol.Messages;
 
-namespace WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages.Invocation
+
+namespace WebSocket4Net.AspNetCore.SignalR.Core.Protocol.Messages
 {
     public class NonBlockingInvocation : Message
     {
@@ -14,9 +11,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages.Invocation
             this.Arguments = arguments;
             this.Target = targrt;
         }
-        [JsonProperty("target")]
         public string Target { get; set; }
-        [JsonProperty("arguments")]
         public object[] Arguments { get; set; }
     }
 }

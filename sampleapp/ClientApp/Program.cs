@@ -2,6 +2,7 @@
 using WebSocket4Net.AspNetCore.SignalRClient.Connection;
 using WebSocket4Net.AspNetCore.SignalR.Client;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ClientApp
 {
@@ -20,14 +21,26 @@ namespace ClientApp
             //       Console.WriteLine($"user:{model.User},mes:{model.Message}");
             //   });
 
-            //// 发送Non-block Invacation
+  
+            //connection.Closed += Connection_Closed;
 
-            connection.Invoke<bool>("SendMessage", new object[] { "user1", "message1" },(result,exception)=> {
-                Console.WriteLine($"result:{result}");
-            }).GetAwaiter().GetResult();
+            //connection.Invoke<bool>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
+            //{
+            //    Console.WriteLine($"result:{result}");
+
+
+
+            //}).GetAwaiter().GetResult();
 
             Console.ReadKey();
         }
+
+        //private static async System.Threading.Tasks.Task Connection_Closed(Exception arg)
+        //{
+        //    await Task.CompletedTask;
+        //    Console.WriteLine(arg.Message);
+        //}
+
         public class UserAndMessage
         {
             public string User { get; set; }

@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
 
-namespace WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages
+namespace WebSocket4Net.AspNetCore.SignalR.Core.Protocol.Messages
 {
     class SuccessfulCompletion : Completion
     {
@@ -12,7 +9,6 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages
             this.InvocationId = invocationId;
             this.Result = result;
         }
-        [JsonProperty("result")]
         public object Result { get; set; } = "";
     }
 }

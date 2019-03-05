@@ -13,7 +13,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
     {
         public int MessageTypeId { get => 6; }
 
-        public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> callBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
+        public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
         {
             await Task.CompletedTask;
         }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,11 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
         {
             try
             {
-                var mes = Newtonsoft.Json.JsonConvert.DeserializeObject<Message>(message);
+                var settings = new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                };
+                var mes = Newtonsoft.Json.JsonConvert.DeserializeObject<Message>(message, settings);
 
                 return _receivedMessageHandlers.FirstOrDefault(m => m.MessageTypeId == mes.Type) ?? throw new Exception($"找不到消息类型匹配的消息处理器,handlerTypeId:{mes.Type}");
             }
