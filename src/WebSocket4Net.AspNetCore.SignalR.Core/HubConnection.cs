@@ -182,10 +182,6 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             {
                 await Closed.Invoke(new Exception(message));
             }
-            else
-            {
-                await StopAsync();
-            }
         }
 
         public IDisposable On<TResult>(string methodName, Action<TResult> handler) where TResult : class
@@ -321,7 +317,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             {
                 invoke = null;
             }
-            _sendedMessageCallBacks.TryAdd(currentInvocationId, new InvocationRequestCallBack<object>(DateTime.UtcNow.AddMinutes(InvocationRequestCallBack<object>.CallBackTimeOutMinutes), invoke,typeof(TResult)));
+            _sendedMessageCallBacks.TryAdd(currentInvocationId, new InvocationRequestCallBack<object>(DateTime.UtcNow.AddMinutes(InvocationRequestCallBack<object>.CallBackTimeOutMinutes), invoke, typeof(TResult)));
             await InnerInvokeCore(methodName, currentInvocationId, args, cancellationToken);
         }
 
@@ -526,7 +522,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
                 if (_sendedPingMessageTimer != null)
                 {
                     _sendedPingMessageTimer.Dispose();
-                }        
+                }
                 //(_serviceProvider as IDisposable)?.Dispose();
                 _disposed = true;
             }
