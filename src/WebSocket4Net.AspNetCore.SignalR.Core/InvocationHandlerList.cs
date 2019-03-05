@@ -10,7 +10,6 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.Connection
         private readonly List<InvocationHandler> _invocationHandlers;
         private InvocationHandler[] _copiedHandlers;
 
-
         internal InvocationHandlerList(InvocationHandler handler)
         {
             _invocationHandlers = new List<InvocationHandler>() { handler };
@@ -70,6 +69,5 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.Connection
             await Task.CompletedTask;
             _callback(parameter);
         }
-
     }
 }

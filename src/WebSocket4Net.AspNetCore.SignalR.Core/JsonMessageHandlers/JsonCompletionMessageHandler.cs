@@ -54,8 +54,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
             catch(Exception ex)
             {
                 _logger.LogError(ex,"回调失败");
-            }
-           
+            }         
         }
     }
 }

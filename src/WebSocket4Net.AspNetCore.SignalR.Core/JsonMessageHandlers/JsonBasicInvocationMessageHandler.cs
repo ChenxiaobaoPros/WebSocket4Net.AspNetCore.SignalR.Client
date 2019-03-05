@@ -55,8 +55,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
                         await hubConnection.SendFaildCompletionAsync(BasicInvocationMessage.InvocationId, ex.Message);
                         return;
                     }
-                }
-              
+                }           
             }
             if (!string.IsNullOrEmpty(BasicInvocationMessage.InvocationId))
             {

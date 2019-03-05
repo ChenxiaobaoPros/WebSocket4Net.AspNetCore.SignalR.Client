@@ -44,7 +44,6 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
                 _logger.LogError(ex, error);
                 throw new NotSupportedException(error, ex);
             }
-
         }
     }
 }

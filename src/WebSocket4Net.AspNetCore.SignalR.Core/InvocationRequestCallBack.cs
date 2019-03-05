@@ -19,6 +19,5 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.Connection
         public DateTime ExpireTime { get; private set; }
         public Type ReturnType { get; private set; }
         public Action<TResult, Exception> Invoke { get; private set; }
-
     }
 }

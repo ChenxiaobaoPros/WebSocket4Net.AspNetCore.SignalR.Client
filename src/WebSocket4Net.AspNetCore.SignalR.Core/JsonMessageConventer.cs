@@ -22,6 +22,5 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.MessageConveter
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(message, settings);
             return (new List<byte>(Encoding.UTF8.GetBytes(json)) { 0x1e }).ToArray();
         }
-
     }
 }
