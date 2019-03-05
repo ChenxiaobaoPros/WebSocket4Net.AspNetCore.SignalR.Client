@@ -321,7 +321,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             {
                 invoke = null;
             }
-            _sendedMessageCallBacks.TryAdd(currentInvocationId, new InvocationRequestCallBack<object>(DateTime.UtcNow.AddMinutes(InvocationRequestCallBack<object>.CallBackTimeOutMinutes), invoke));
+            _sendedMessageCallBacks.TryAdd(currentInvocationId, new InvocationRequestCallBack<object>(DateTime.UtcNow.AddMinutes(InvocationRequestCallBack<object>.CallBackTimeOutMinutes), invoke,typeof(TResult)));
             await InnerInvokeCore(methodName, currentInvocationId, args, cancellationToken);
         }
 

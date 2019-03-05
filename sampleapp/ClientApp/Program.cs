@@ -33,7 +33,7 @@ namespace ClientApp
 
             Timer timer = new Timer(obj =>
             {
-                connection.Invoke<bool>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
+                connection.Invoke<UserAndMessage>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
                 {
                     Console.WriteLine($"result:{result}");
 

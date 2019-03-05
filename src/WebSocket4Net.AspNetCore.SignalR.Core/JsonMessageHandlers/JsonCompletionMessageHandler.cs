@@ -40,12 +40,22 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
             {
                 return;
             }
-            if (!string.IsNullOrEmpty(mes.Error))
+            try
             {
-                callback.Invoke(mes.Result, new Exception(mes.Error));
-                return;
+                var modelJson = Newtonsoft.Json.JsonConvert.SerializeObject(mes.Result);
+                var model = Newtonsoft.Json.JsonConvert.DeserializeObject(modelJson, callback.ReturnType, settings);
+                if (!string.IsNullOrEmpty(mes.Error))
+                {
+                    callback.Invoke(model, new Exception(mes.Error));
+                    return;
+                }
+                callback.Invoke(model, null);
             }
-            callback.Invoke(mes.Result, null);
+            catch(Exception ex)
+            {
+                _logger.LogError(ex,"回调失败");
+            }
+           
         }
     }
 }
