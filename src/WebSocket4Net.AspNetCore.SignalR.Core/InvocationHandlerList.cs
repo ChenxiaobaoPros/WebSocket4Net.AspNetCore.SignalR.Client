@@ -8,8 +8,6 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.Connection
     public class InvocationHandlerList
     {
         private readonly List<InvocationHandler> _invocationHandlers;
-        // A lazy cached copy of the handlers that doesn't change for thread safety. 
-        // Adding or removing a handler sets this to null.
         private InvocationHandler[] _copiedHandlers;
 
 
@@ -25,7 +23,6 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.Connection
             {
                 lock (_invocationHandlers)
                 {
-                    // Check if the handlers are set, if not we'll copy them over.
                     if (_copiedHandlers == null)
                     {
                         _copiedHandlers = _invocationHandlers.ToArray();
