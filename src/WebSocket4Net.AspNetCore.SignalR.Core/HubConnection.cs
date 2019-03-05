@@ -19,10 +19,10 @@ using WebSocket4Net.AspNetCore.SignalRClient.Protocol;
 
 namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
 {
-    public class HubConnection
+    public class HubConnection : IDisposable
     {
         // 连接超时
-        public static readonly TimeSpan DefaultServerTimeout = TimeSpan.FromSeconds(30);
+        public static readonly TimeSpan DefaultServerTimeout = TimeSpan.FromSeconds(45);
         // 定时 发送 ping 防止长连接关闭  
         public static readonly TimeSpan DefaultKeepAliveInterval = TimeSpan.FromSeconds(15);
         // 保证同一时间只有一个消息发送
@@ -87,6 +87,11 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             _hubUri = hubOptions.Uri;
             var url = _hubUri.AbsoluteUri.Replace("http://", "ws://").Replace("https://", "wss://");
             this._webSocket = new WebSocket(url);
+        }
+
+        ~HubConnection()
+        {
+            Dispose(false);
         }
         public void InitRequestedMessageCallBacksCleaner()
         {
@@ -242,39 +247,30 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             {
                 return;
             }
-            var messageHandler = _receivedMessageHandlerProvider.GetHandler(data);
-
-            messageHandler.Handler(data, _sendedMessageCallBacks, _handlers, this);
+            var separator = new byte[1] { 0x1e };
+            var separatorStr = Encoding.UTF8.GetString(separator);
+            var messages = data.Split(separatorStr[0]);
+            foreach (var message in messages)
+            {
+                if (!string.IsNullOrEmpty(message))
+                {
+                    try
+                    {
+                        var messageHandler = _receivedMessageHandlerProvider.GetHandler(message);
+                        messageHandler.Handler(message, _sendedMessageCallBacks, _handlers, this);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+            }
         }
 
         private async Task StopAsyncCore()
         {
-            await WaitConnectionLockAsync();
-            try
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-                CheckDisposed();
-
-                (_serviceProvider as IDisposable)?.Dispose();
-                _webSocket.MessageReceived -= WebSocket_MessageReceived;
-                _sendedMessageCallBacks = null;
-                _handlers = null;
-                ReleaseConnectionLock();
-                _connectionLock.Dispose();
-                _webSocket.Dispose();
-                _sendedMessageCallBacksCleanerTimer.Dispose();
-                _webSocket = null;
-                _sendedPingMessageTimer.Dispose();
-                _disposed = true;
-                _logger.LogInformation("销毁 Hub连接资源成功");
-            }
-            finally
-            {
-                ReleaseConnectionLock();
-            }
+            await Task.CompletedTask;
+            Dispose(true);
         }
         public async Task Invoke<TResult>(string methodName, object[] args, Action<TResult, Exception> callBack, CancellationToken cancellationToken = default)
         {
@@ -358,6 +354,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             {
                 _webSocket.Send(data, 0, data.Length);
                 ResetSendPing();
+                ResetTimeout();
             }
             catch (Exception ex)
             {
@@ -496,5 +493,51 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             _connectionLock.Release();
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            WaitConnectionLockAsync().GetAwaiter().GetResult();
+            try
+            {
+                CheckDisposed();
+                if (disposing)
+                {
+
+                    _sendedMessageCallBacks = null;
+                    _handlers = null;
+                    _disposed = true;
+                    if (_isStart)
+                    {
+                        _webSocket.MessageReceived -= WebSocket_MessageReceived;
+                    }
+                }
+                _logger.LogInformation("销毁 Hub连接资源成功");
+
+                _webSocket.Dispose();
+                _webSocket = null;
+                _sendedMessageCallBacksCleanerTimer.Dispose();
+                if (_sendedPingMessageTimer != null)
+                {
+                    _sendedPingMessageTimer.Dispose();
+                }        
+                //(_serviceProvider as IDisposable)?.Dispose();
+                _disposed = true;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                ReleaseConnectionLock();
+            }
+        }
     }
 }

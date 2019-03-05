@@ -41,7 +41,10 @@ namespace WebSocket4Net.AspNetCore.SignalR.Client
             }
             return hubConnectionBuilder;
         }
-
-
+        public static HubConnectionBuilder ConfigService(this HubConnectionBuilder hubConnectionBuilder, Action<IServiceCollection> config)
+        {
+            config(hubConnectionBuilder.Services);
+            return hubConnectionBuilder;
+        }
     }
 }

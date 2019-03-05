@@ -22,6 +22,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
 
         public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
         {
+            _logger.LogInformation($"开始处理BasicInvocation, Message:{message}");
             var settings = new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -31,6 +32,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
             {
                 _logger.LogError($"多个参数的远程调用暂不支持,message:{message}");
                 await hubConnection.SendFaildCompletionAsync(BasicInvocationMessage.InvocationId, "多个参数的远程调用暂不支持");
+                return;
             }
             if (invocationHandlers.TryGetValue(BasicInvocationMessage.Target, out InvocationHandlerList invocationHandlerList))
             {
@@ -43,6 +45,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
                         var model = Newtonsoft.Json.JsonConvert.DeserializeObject(modelJson, handler.ReturnType);
                         await handler.InvokeAsync(model);
                     }
+                    return;
                 }
                 catch (Exception ex)
                 {
@@ -50,12 +53,15 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
                     if (!string.IsNullOrEmpty(BasicInvocationMessage.InvocationId))
                     {
                         await hubConnection.SendFaildCompletionAsync(BasicInvocationMessage.InvocationId, ex.Message);
+                        return;
                     }
                 }
+              
             }
             if (!string.IsNullOrEmpty(BasicInvocationMessage.InvocationId))
             {
                 await hubConnection.SendSuccessfulCompletionAsync(BasicInvocationMessage.InvocationId);
+                return;
             }
 
             _logger.LogWarning($"没有找到匹配的 InvocationHandler,message:{message}");

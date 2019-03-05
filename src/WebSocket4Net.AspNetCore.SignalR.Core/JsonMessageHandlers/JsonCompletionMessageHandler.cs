@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Concurrent;
@@ -14,10 +15,16 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
 {
     public class JsonCompletionMessageHandler : IReceivedMessageHandler
     {
+        private readonly ILogger _logger;
+        public JsonCompletionMessageHandler(ILogger<JsonCompletionMessageHandler> logger)
+        {
+            _logger = logger;
+        }
         public int MessageTypeId { get => 3; }
 
         public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
         {
+            _logger.LogInformation($"开始处理CompletionMessage, Message:{message}");
             await Task.CompletedTask;
             var settings = new JsonSerializerSettings
             {

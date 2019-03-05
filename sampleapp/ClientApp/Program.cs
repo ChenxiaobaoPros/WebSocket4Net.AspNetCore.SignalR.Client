@@ -3,6 +3,8 @@ using WebSocket4Net.AspNetCore.SignalRClient.Connection;
 using WebSocket4Net.AspNetCore.SignalR.Client;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ClientApp
 {
@@ -12,34 +14,42 @@ namespace ClientApp
         {
             var connection = new HubConnectionBuilder()
                 .WithUrl("http://127.0.0.1:5000/chatHub")
+                .ConfigService(service =>
+                {
+                    service.AddLogging(config =>
+                    {
+                        config.AddConsole();
+                    });
+                })
                 .Build();
             connection.StartAsync().GetAwaiter().GetResult();
 
-            //// 监听请求
-            //connection.On<UserAndMessage>("ReceiveMessage", model =>
-            //   {
-            //       Console.WriteLine($"user:{model.User},mes:{model.Message}");
-            //   });
+            connection.On<UserAndMessage>("ReceiveMessage", model =>
+            {
+                Console.WriteLine($"user:{model.User},mes:{model.Message}");
+            });
 
-  
-            //connection.Closed += Connection_Closed;
+            connection.Closed += Connection_Closed;
 
-            //connection.Invoke<bool>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
-            //{
-            //    Console.WriteLine($"result:{result}");
+            Timer timer = new Timer(obj =>
+            {
+                connection.Invoke<bool>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
+                {
+                    Console.WriteLine($"result:{result}");
 
 
 
-            //}).GetAwaiter().GetResult();
+                }).GetAwaiter().GetResult();
+            }, "", 0, 5 * 60 * 1000);
 
             Console.ReadKey();
         }
 
-        //private static async System.Threading.Tasks.Task Connection_Closed(Exception arg)
-        //{
-        //    await Task.CompletedTask;
-        //    Console.WriteLine(arg.Message);
-        //}
+        private static async System.Threading.Tasks.Task Connection_Closed(Exception arg)
+        {
+            await Task.CompletedTask;
+            Console.WriteLine(arg.Message);
+        }
 
         public class UserAndMessage
         {

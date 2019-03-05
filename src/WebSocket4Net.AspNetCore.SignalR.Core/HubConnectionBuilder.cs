@@ -11,12 +11,8 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
     {
         private bool _hubConnectionBuilt;
 
-        /// <inheritdoc />
         public IServiceCollection Services { get; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HubConnectionBuilder"/> class.
-        /// </summary>
         public HubConnectionBuilder()
         {
             Services = new ServiceCollection();
@@ -24,7 +20,6 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             Services.AddLogging();
         }
 
-        /// <inheritdoc />
         public HubConnection Build()
         {
             if (_hubConnectionBuilt)

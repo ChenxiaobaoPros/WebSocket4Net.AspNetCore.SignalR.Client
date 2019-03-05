@@ -11,7 +11,5 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.Protocol.Messages
         }
         public string Protocol { get; set; }
         public int Version { get; set; } = 1;
-
-        public new object Headers { get; set; }
     }
 }
