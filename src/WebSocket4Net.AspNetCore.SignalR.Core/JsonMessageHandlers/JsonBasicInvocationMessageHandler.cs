@@ -41,8 +41,8 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
                 {
                     foreach (var handler in handlers)
                     {
-                        var modelJson = Newtonsoft.Json.JsonConvert.SerializeObject(BasicInvocationMessage.Arguments[0]);
-                        var model = Newtonsoft.Json.JsonConvert.DeserializeObject(modelJson, handler.ReturnType);
+                        var modelJson = Newtonsoft.Json.JsonConvert.SerializeObject(BasicInvocationMessage.Arguments[0], settings);
+                        var model = Newtonsoft.Json.JsonConvert.DeserializeObject(modelJson, handler.ReturnType, settings);
                         await handler.InvokeAsync(model);
                     }
                     return;

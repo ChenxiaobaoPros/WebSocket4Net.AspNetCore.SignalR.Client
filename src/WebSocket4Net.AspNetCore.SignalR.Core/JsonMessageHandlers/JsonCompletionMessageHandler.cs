@@ -42,7 +42,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
             }
             try
             {
-                var modelJson = Newtonsoft.Json.JsonConvert.SerializeObject(mes.Result);
+                var modelJson = Newtonsoft.Json.JsonConvert.SerializeObject(mes.Result, settings);
                 var model = Newtonsoft.Json.JsonConvert.DeserializeObject(modelJson, callback.ReturnType, settings);
                 if (!string.IsNullOrEmpty(mes.Error))
                 {
