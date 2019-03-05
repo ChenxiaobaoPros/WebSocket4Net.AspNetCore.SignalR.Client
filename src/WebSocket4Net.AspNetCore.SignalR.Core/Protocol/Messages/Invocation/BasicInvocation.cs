@@ -15,6 +15,9 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Protocol.Messages.Invocation
         public BasicInvocation(string invocationId, string target, object[] arguments)
         {
             this.Type = 1;
+            this.InvocationId = invocationId;
+            this.Arguments = arguments;
+            this.Target = target;
         }
         [JsonProperty("invocationId")]
         public string InvocationId { get; set; }

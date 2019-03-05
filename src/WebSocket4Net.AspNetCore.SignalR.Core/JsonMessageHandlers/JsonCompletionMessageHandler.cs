@@ -18,18 +18,21 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
         {
             await Task.CompletedTask;
             var mes = Newtonsoft.Json.JsonConvert.DeserializeObject<CompletionWithBothErrorAndResult>(message);
-            if (string.IsNullOrEmpty(mes.InvocationId))
-            {
-                return;
-            }
             if (!callBacks.TryRemove(mes.InvocationId, out InvocationRequestCallBack<object> callback))
             {
                 throw new Exception($"InvocationId={mes.InvocationId} 在当前 回调池里不存在"); //warn
             }
+            // 无回调
+            if (callback.Invoke == null)
+            {
+                return;
+            }
             if (!string.IsNullOrEmpty(mes.Error))
             {
-                throw new Exception(mes.Error);
+                callback.Invoke(mes.Result, new Exception(mes.Error));
+                return;
             }
+            callback.Invoke(mes.Result, null);
         }
     }
 }

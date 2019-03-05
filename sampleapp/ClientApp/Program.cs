@@ -1,6 +1,7 @@
 ﻿using System;
 using WebSocket4Net.AspNetCore.SignalRClient.Connection;
 using WebSocket4Net.AspNetCore.SignalR.Client;
+using System.Threading;
 
 namespace ClientApp
 {
@@ -20,7 +21,11 @@ namespace ClientApp
             //   });
 
             //// 发送Non-block Invacation
-            //connection.Send("SendMessage", new object[] { "user1", "message1" }).GetAwaiter().GetResult();
+
+            connection.Invoke<bool>("SendMessage", new object[] { "user1", "message1" },(result,exception)=> {
+                Console.WriteLine($"result:{result}");
+            }).GetAwaiter().GetResult();
+
             Console.ReadKey();
         }
         public class UserAndMessage

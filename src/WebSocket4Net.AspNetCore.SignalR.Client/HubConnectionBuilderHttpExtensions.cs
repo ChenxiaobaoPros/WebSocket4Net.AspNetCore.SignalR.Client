@@ -31,17 +31,17 @@ namespace WebSocket4Net.AspNetCore.SignalR.Client
             option.Uri = new Uri(url);
             hubConnectionBuilder.Services.AddSingleton(option);
 
-            hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandlerProvider, JsonReceivedMessageHandlerProvider>();
-
-            hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonBasicInvocationMessageHandler>();
-            hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonCloseMessageHandler>();
-            hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonCompletionMessageHandler>();
-            hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonPingMessageHandler>();
-            hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonStreamingInvocationMessageHandler>();
-
             if (protocolOption == ProtocolOption.Json)
             {
-                hubConnectionBuilder.Services.AddSingleton<IMessageParser, JsonDotnetMessageParser>();
+                hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandlerProvider, JsonReceivedMessageHandlerProvider>();
+
+                hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonBasicInvocationMessageHandler>();
+                hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonCloseMessageHandler>();
+                hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonCompletionMessageHandler>();
+                hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonPingMessageHandler>();
+                hubConnectionBuilder.Services.AddSingleton<IReceivedMessageHandler, JsonStreamingInvocationMessageHandler>();
+
+                hubConnectionBuilder.Services.AddSingleton<IMessageParser, JsonMessageParser>();
             }
             return hubConnectionBuilder;
         }
