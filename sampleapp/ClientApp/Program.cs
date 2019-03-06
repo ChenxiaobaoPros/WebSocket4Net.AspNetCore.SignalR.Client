@@ -29,7 +29,12 @@ namespace ClientApp
                 Console.WriteLine($"user:{model.User},mes:{model.Message}");
             });
 
-            connection.Closed += Connection_Closed;
+            connection.Closed += async (ex) =>
+            {
+                Console.WriteLine(ex.Message);
+                //重试几次
+                await connection.RestartAsync();
+            };
 
             Timer timer = new Timer(obj =>
             {
@@ -43,12 +48,6 @@ namespace ClientApp
             }, "", 0, 5 * 60 * 1000);
 
             Console.ReadKey();
-        }
-
-        private static async System.Threading.Tasks.Task Connection_Closed(Exception arg)
-        {
-            await Task.CompletedTask;
-            Console.WriteLine(arg.Message);
         }
 
         public class UserAndMessage

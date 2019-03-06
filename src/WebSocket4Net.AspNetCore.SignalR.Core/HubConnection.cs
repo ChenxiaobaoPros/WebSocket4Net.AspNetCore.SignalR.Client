@@ -174,14 +174,43 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             CheckDisposed();
             await StopAsyncCore();
         }
-        public async Task CloseAsync(string message, CancellationToken cancellationToken = default)
+        public async Task CloseAsync(string message, Exception exception=null,CancellationToken cancellationToken = default)
         {
             CheckDisposed();
             _logger.LogInformation("开始关闭Hub 连接");
             if (Closed.GetInvocationList().Length != 0)
             {
-                await Closed.Invoke(new Exception(message));
+                if (exception != null)
+                {
+                    await Closed.Invoke(new Exception(message, exception));
+                }
+                else
+                {
+                    await Closed.Invoke(new Exception(message));
+                }
             }
+            else
+            {
+
+            }
+        }
+        public async Task RestartAsync( CancellationToken cancellationToken = default)
+        {
+            CheckDisposed();
+            _logger.LogInformation("开始重启Hub 连接");
+            cancellationToken.ThrowIfCancellationRequested();
+
+           
+            try
+            {
+                _webSocket.OpenAsync().GetAwaiter().GetResult();
+                await HandshakeAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await CloseAsync($"重启连接失败,message:{ex.Message}", ex);
+            }
+
         }
 
         public IDisposable On<TResult>(string methodName, Action<TResult> handler) where TResult : class
@@ -403,6 +432,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"发送 协议格式 失败");
+                throw ex;
             }
         }
 
@@ -525,10 +555,6 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
                 }
                 //(_serviceProvider as IDisposable)?.Dispose();
                 _disposed = true;
-            }
-            catch (Exception ex)
-            {
-
             }
             finally
             {

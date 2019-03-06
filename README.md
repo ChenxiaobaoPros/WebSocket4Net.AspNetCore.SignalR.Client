@@ -20,26 +20,25 @@ Win7 下  Aspnet Core SignalR 基于 WebSocket4Net的客户端
                 Console.WriteLine($"user:{model.User},mes:{model.Message}");
             });
 
-            connection.Closed += Connection_Closed;
-
-
-            connection.Invoke<UserAndMessage>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
+            connection.Closed += async (ex) =>
             {
-                Console.WriteLine($"result:{result}");
+                Console.WriteLine(ex.Message);
+                //重试几次
+                await connection.RestartAsync();
+            };
+
+            Timer timer = new Timer(obj =>
+            {
+                connection.Invoke<UserAndMessage>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>
+                {
+                    Console.WriteLine($"result:{result}");
 
 
 
-            }).GetAwaiter().GetResult();
-
+                }).GetAwaiter().GetResult();
+            }, "", 0, 5 * 60 * 1000);
 
             Console.ReadKey();
-        }
-
-        private static async System.Threading.Tasks.Task Connection_Closed(Exception arg)
-        {
-            await Task.CompletedTask;
-            Console.WriteLine(arg.Message);
-        }
 
         public class UserAndMessage
         {
