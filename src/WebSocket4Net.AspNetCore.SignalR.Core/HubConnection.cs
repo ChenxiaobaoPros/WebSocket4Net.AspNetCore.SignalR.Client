@@ -129,8 +129,12 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
 
       try {
         cancellationToken.ThrowIfCancellationRequested();
+#if NET462
+        _webSocket.Open();
+#else
 
         _webSocket.OpenAsync().GetAwaiter().GetResult();
+#endif
         _webSocket.MessageReceived += WebSocket_MessageReceived;
         _logger.LogInformation($"客户端开始监听服务器端返回,hub uri:{_hubUri.AbsoluteUri}");
 
@@ -174,7 +178,11 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
 
 
       try {
+#if NET462
+        _webSocket.Open();
+#else
         _webSocket.OpenAsync().GetAwaiter().GetResult();
+#endif
         await HandshakeAsync(cancellationToken);
       } catch (Exception ex) {
         await CloseAsync($"重启连接失败,message:{ex.Message}", ex);
