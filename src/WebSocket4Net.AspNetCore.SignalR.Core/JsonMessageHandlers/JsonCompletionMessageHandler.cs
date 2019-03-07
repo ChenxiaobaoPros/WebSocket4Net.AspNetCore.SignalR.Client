@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -20,9 +20,9 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
         {
             _logger = logger;
         }
-        public int MessageTypeId { get => 3; }
+    public int MessageTypeId => 3;
 
-        public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
+    public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
         {
             _logger.LogInformation($"开始处理CompletionMessage, Message:{message}");
             await Task.CompletedTask;
@@ -42,7 +42,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
             }
             try
             {
-                var modelJson = Newtonsoft.Json.JsonConvert.SerializeObject(mes.Result, settings);
+                var modelJson = JsonConvert.SerializeObject(mes.Result, settings);
                 var model = Newtonsoft.Json.JsonConvert.DeserializeObject(modelJson, callback.ReturnType, settings);
                 if (!string.IsNullOrEmpty(mes.Error))
                 {

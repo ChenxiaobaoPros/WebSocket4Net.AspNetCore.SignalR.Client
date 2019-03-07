@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
@@ -50,7 +50,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
         private bool _disposed;
         private bool _isStart;
 
-        private WebSocket4Net.WebSocket _webSocket;
+        private WebSocket _webSocket;
 
 
         public event Func<Exception, Task> Closed;
@@ -79,14 +79,14 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             var hubOptions = serviceProvider.GetService(typeof(HubConnectionOptions)) as HubConnectionOptions ?? throw new ArgumentException("找不到默认的 Hub 配置");
 
             _receivedMessageHandlerProvider = serviceProvider.GetService(typeof(IReceivedMessageHandlerProvider)) as IReceivedMessageHandlerProvider;
-            this._messageConverter = serviceProvider.GetService(typeof(IMessageConventer)) as IMessageConventer ?? throw new ArgumentException("找不到默认的 消息转换组件");
+            _messageConverter = serviceProvider.GetService(typeof(IMessageConventer)) as IMessageConventer ?? throw new ArgumentException("找不到默认的 消息转换组件");
 
             // 定期清理 callback 池
             InitRequestedMessageCallBacksCleaner();
 
             _hubUri = hubOptions.Uri;
             var url = _hubUri.AbsoluteUri.Replace("http://", "ws://").Replace("https://", "wss://");
-            this._webSocket = new WebSocket(url);
+            _webSocket = new WebSocket(url);
         }
 
         ~HubConnection()
@@ -174,7 +174,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             CheckDisposed();
             await StopAsyncCore();
         }
-        public async Task CloseAsync(string message, Exception exception=null,CancellationToken cancellationToken = default)
+        public async Task CloseAsync(string message, Exception exception = null, CancellationToken cancellationToken = default)
         {
             CheckDisposed();
             _logger.LogInformation("开始关闭Hub 连接");
@@ -194,13 +194,13 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
 
             }
         }
-        public async Task RestartAsync( CancellationToken cancellationToken = default)
+        public async Task RestartAsync(CancellationToken cancellationToken = default)
         {
             CheckDisposed();
             _logger.LogInformation("开始重启Hub 连接");
             cancellationToken.ThrowIfCancellationRequested();
 
-           
+
             try
             {
                 _webSocket.OpenAsync().GetAwaiter().GetResult();
@@ -522,6 +522,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         private void Dispose(bool disposing)
         {
@@ -532,28 +533,18 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection
             WaitConnectionLockAsync().GetAwaiter().GetResult();
             try
             {
-                CheckDisposed();
                 if (disposing)
                 {
+                    _sendedMessageCallBacksCleanerTimer.Dispose();
 
-                    _sendedMessageCallBacks = null;
-                    _handlers = null;
-                    _disposed = true;
-                    if (_isStart)
+                    if (_sendedPingMessageTimer != null)
                     {
-                        _webSocket.MessageReceived -= WebSocket_MessageReceived;
+                        _sendedPingMessageTimer.Dispose();
                     }
+                    //(_serviceProvider as IDisposable)?.Dispose();
                 }
-                _logger.LogInformation("销毁 Hub连接资源成功");
-
                 _webSocket.Dispose();
-                _webSocket = null;
-                _sendedMessageCallBacksCleanerTimer.Dispose();
-                if (_sendedPingMessageTimer != null)
-                {
-                    _sendedPingMessageTimer.Dispose();
-                }
-                //(_serviceProvider as IDisposable)?.Dispose();
+
                 _disposed = true;
             }
             finally

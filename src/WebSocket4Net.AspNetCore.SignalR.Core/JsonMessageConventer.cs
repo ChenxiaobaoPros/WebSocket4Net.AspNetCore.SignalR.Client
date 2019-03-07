@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -11,9 +11,9 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.MessageConveter
 {
     public class JsonMessageConventer : IMessageConventer
     {
-        public string ProtocolName { get => "json"; }
+    public string ProtocolName => "json";
 
-        public byte[] GetBytes(Message message)
+    public byte[] GetBytes(Message message)
         {
             var settings = new JsonSerializerSettings
             {

@@ -35,7 +35,7 @@ namespace ClientApp
                 //重试几次
                 await connection.RestartAsync();
             };
-
+            connection.Send("SendMessage", new object[] { "user1", "message1" }).GetAwaiter().GetResult();
             Timer timer = new Timer(obj =>
             {
                 connection.Invoke<UserAndMessage>("SendMessage", new object[] { "user1", "message1" }, (result, exception) =>

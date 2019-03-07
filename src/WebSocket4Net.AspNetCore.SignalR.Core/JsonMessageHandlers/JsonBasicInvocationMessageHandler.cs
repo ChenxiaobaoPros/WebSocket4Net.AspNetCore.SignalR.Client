@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -18,9 +18,9 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
         {
             _logger = logger;
         }
-        public int MessageTypeId { get => 1; }
+    public int MessageTypeId => 1;
 
-        public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
+    public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
         {
             _logger.LogInformation($"开始处理BasicInvocation, Message:{message}");
             var settings = new JsonSerializerSettings
