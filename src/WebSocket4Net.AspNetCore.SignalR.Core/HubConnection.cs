@@ -129,7 +129,12 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
 
       try {
         cancellationToken.ThrowIfCancellationRequested();
+#if NET462
         _webSocket.Open();
+#else
+
+        _webSocket.OpenAsync().GetAwaiter().GetResult();
+#endif
         _webSocket.MessageReceived += WebSocket_MessageReceived;
         _logger.LogInformation($"客户端开始监听服务器端返回,hub uri:{_hubUri.AbsoluteUri}");
 
@@ -173,10 +178,15 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
 
 
       try {
+#if NET462
         _webSocket.Open();
+#else
+        _webSocket.OpenAsync().GetAwaiter().GetResult();
+#endif
         await HandshakeAsync(cancellationToken);
       } catch (Exception ex) {
         await CloseAsync($"重启连接失败,message:{ex.Message}", ex);
+        throw ex;
       }
 
     }
@@ -222,7 +232,8 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
 
     private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e) {
       var data = e.Message;
-      _logger.LogInformation($"收到服务端消息:{data}");
+      _logger.LogInformation($"收到服务端消息");
+      _logger.LogDebug($"data:{data}");
       if (data.Length < 1) {
         return; //非 signalR 协议中的返回
       }
@@ -272,7 +283,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
     }
 
     private async Task InvokeCore<TResult>(string methodName, Action<TResult, Exception> callBack, object[] args, CancellationToken cancellationToken = default) {
-      var currentInvocationId = GetCurrentInvocationId;
+      var currentInvocationId = this.GetCurrentInvocationId;
       if (_sendedMessageCallBacks.TryGetValue(currentInvocationId, out InvocationRequestCallBack<object> invocationRequestCallBack)) {
         throw new Exception($"HubUrl:{_hubUri.AbsoluteUri},currentInvocationId:{currentInvocationId} 在 InvocationRequestCallBack Dic中 已存在");
       }

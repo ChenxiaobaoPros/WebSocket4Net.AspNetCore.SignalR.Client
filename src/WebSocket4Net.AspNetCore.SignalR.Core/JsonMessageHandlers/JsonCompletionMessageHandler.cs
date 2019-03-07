@@ -24,7 +24,7 @@ namespace WebSocket4Net.AspNetCore.SignalR.Core.JsonMessageHandlers
 
     public async Task Handler(string message, ConcurrentDictionary<string, InvocationRequestCallBack<object>> requestCallBacks, ConcurrentDictionary<string, InvocationHandlerList> invocationHandlers, HubConnection hubConnection)
         {
-            _logger.LogInformation($"开始处理CompletionMessage, Message:{message}");
+            _logger.LogDebug($"开始处理CompletionMessage, Message:{message}");
             await Task.CompletedTask;
             var settings = new JsonSerializerSettings
             {
