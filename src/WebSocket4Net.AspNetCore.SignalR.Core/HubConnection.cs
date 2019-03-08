@@ -85,7 +85,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
       } else {
         _webSocket = new WebSocket(url);
       }
-
+      _webSocket.MessageReceived += WebSocket_MessageReceived;
     }
 
     ~HubConnection() {
@@ -97,7 +97,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
         await WaitConnectionLockAsync();
 
         try {
-          _logger.LogInformation("InvocationRequestCallBack 定期清理启动");
+          _logger.LogDebug("InvocationRequestCallBack 定期清理启动");
 
           var shouldCleanCallBackInvocationIds = new List<string>();
           foreach (var sendedMessageCallBack in _sendedMessageCallBacks) {
@@ -109,13 +109,13 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
             _sendedMessageCallBacks.TryRemove(m, out InvocationRequestCallBack<object> callback);
             _logger.LogError($"InvocationId:{m}的 请求回调从回调池里删除,请求未在{InvocationRequestCallBack<object>.CallBackTimeOutMinutes}分钟内响应");
           });
-          _logger.LogInformation($"InvocationRequestCallBack 定期清理结束,清理对象:{shouldCleanCallBackInvocationIds.Count}个");
+          _logger.LogDebug($"InvocationRequestCallBack 定期清理结束,清理对象:{shouldCleanCallBackInvocationIds.Count}个");
         } finally {
           ReleaseConnectionLock();
         }
 
       }, "", 5 * 1000 * 60, 5 * 1000 * 60);
-      _logger.LogInformation("InvocationRequestCallBack 定期清理设置成功");
+      _logger.LogDebug("InvocationRequestCallBack 定期清理设置成功");
     }
     public async Task StartAsync(CancellationToken cancellationToken = default) {
       if (_isStart) {
@@ -135,17 +135,18 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
 
         _webSocket.OpenAsync().GetAwaiter().GetResult();
 #endif
-        _webSocket.MessageReceived += WebSocket_MessageReceived;
-        _logger.LogInformation($"客户端开始监听服务器端返回,hub uri:{_hubUri.AbsoluteUri}");
+        Thread.Sleep(2 * 1000); //等待2秒 ,WebSocket4Net open只后无论Hub是否能连上初始状态都为connecting,等待2秒后 目标无法连接状态则更改为closed 
+
+        _logger.LogDebug($"客户端开始监听服务器端返回,hub uri:{_hubUri.AbsoluteUri}");
 
         _sendedPingMessageTimer = new Timer(new TimerCallback(RunTimerActions), null, DefaultKeepAliveInterval.Seconds * 1000, (DefaultKeepAliveInterval.Seconds - 2) * 1000);
 
-        _logger.LogInformation("定期长连接维护设置成功");
+        _logger.LogDebug("定期长连接维护设置成功");
         try {
           _isStart = true;
           await HandshakeAsync(cancellationToken);
         } catch (Exception ex) {
-          await StopAsync();
+          //await StopAsync();
           throw ex;
         }
       } finally {
@@ -154,13 +155,14 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
     }
 
     public async Task StopAsync(CancellationToken cancellationToken = default) {
-      _logger.LogInformation("开始销毁 Hub连接资源");
+      _logger.LogDebug("开始销毁 Hub连接资源");
       CheckDisposed();
       await StopAsyncCore();
     }
     public async Task CloseAsync(string message, Exception exception = null, CancellationToken cancellationToken = default) {
       CheckDisposed();
-      _logger.LogInformation("开始关闭Hub 连接");
+      _logger.LogDebug("开始关闭Hub 连接");
+      _sendedPingMessageTimer.Dispose();
       if (Closed.GetInvocationList().Length != 0) {
         if (exception != null) {
           await Closed.Invoke(new Exception(message, exception));
@@ -172,23 +174,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
       }
     }
     public async Task RestartAsync(CancellationToken cancellationToken = default) {
-      CheckDisposed();
-      _logger.LogInformation("开始重启Hub 连接");
-      cancellationToken.ThrowIfCancellationRequested();
-
-
-      try {
-#if NET462
-        _webSocket.Open();
-#else
-        _webSocket.OpenAsync().GetAwaiter().GetResult();
-#endif
-        await HandshakeAsync(cancellationToken);
-      } catch (Exception ex) {
-        await CloseAsync($"重启连接失败,message:{ex.Message}", ex);
-        throw ex;
-      }
-
+      await StartAsyncCore(cancellationToken);
     }
 
     public IDisposable On<TResult>(string methodName, Action<TResult> handler) where TResult : class {
@@ -220,19 +206,19 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
     internal async Task SendSuccessfulCompletionAsync(string invocationId, CancellationToken cancellationToken = default) {
       var invocationMessage = new SuccessfulCompletion(invocationId);
 
-      _logger.LogInformation("开始发送成功完成消息");
+      _logger.LogDebug("开始发送成功完成消息");
       await InnerSendHubMessage(invocationMessage, cancellationToken);
     }
     internal async Task SendFaildCompletionAsync(string invocationId, string errorMessage, CancellationToken cancellationToken = default) {
       var invocationMessage = new FaildCompletion(invocationId, errorMessage);
 
-      _logger.LogInformation("开始 发送失败完成消息");
+      _logger.LogDebug("开始 发送失败完成消息");
       await InnerSendHubMessage(invocationMessage, cancellationToken);
     }
 
     private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e) {
       var data = e.Message;
-      _logger.LogInformation($"收到服务端消息");
+      _logger.LogDebug($"收到服务端消息");
       _logger.LogDebug($"data:{data}");
       if (data.Length < 1) {
         return; //非 signalR 协议中的返回
@@ -308,7 +294,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
       } else {
         invocationMessage = new BasicInvocation(invocationId, methodName, args);
       }
-      _logger.LogInformation("开始 发送远程调用消息");
+      _logger.LogDebug("开始 发送远程调用消息");
       await InnerSendHubMessage(invocationMessage, cancellationToken);
     }
 
@@ -320,7 +306,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
       CheckConnectionActive();
 
       var data = _messageConverter.GetBytes(hubMessage);
-      _logger.LogInformation(" 发送数据");
+      _logger.LogDebug(" 发送数据");
       try {
         _webSocket.Send(data, 0, data.Length);
         ResetSendPing();
@@ -359,7 +345,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
       var handshakeRequest = new Handshake(_messageConverter.ProtocolName);
 
       try {
-        _logger.LogInformation($"开始发送 协议格式,{nameof(_messageConverter.ProtocolName)}:{_messageConverter.ProtocolName}");
+        _logger.LogDebug($"开始发送 协议格式,{nameof(_messageConverter.ProtocolName)}:{_messageConverter.ProtocolName}");
         await InnerSendHubMessage(handshakeRequest);
       } catch (Exception ex) {
         _logger.LogError(ex, $"发送 协议格式 失败");
@@ -376,7 +362,7 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
     }
 
     private void RunTimerActions(object obj) {
-      _logger.LogInformation("长连接维护开始");
+      _logger.LogDebug("长连接维护开始");
       if (Volatile.Read(ref _nextActivationServerTimeout) != 0 && DateTime.UtcNow.Ticks > Volatile.Read(ref _nextActivationServerTimeout)) {
         OnServerTimeout();
       }
@@ -384,7 +370,6 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
       if (DateTime.UtcNow.Ticks > Volatile.Read(ref _nextActivationSendPing)) {
         PingServer().GetAwaiter().GetResult();
       }
-
     }
 
     private void OnServerTimeout() {
@@ -394,15 +379,16 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
     }
 
     private bool IsConnectionAvailable() {
-      return _webSocket.State == WebSocketState.Connecting || _webSocket.State == WebSocketState.Open;
+      return  _webSocket.State == WebSocketState.Open;
     }
     private async Task PingServer() {
       await WaitConnectionLockAsync();
       try {
         if (_disposed || _webSocket == null || !IsConnectionAvailable()) {
+          ReleaseConnectionLock();
           await CloseAsync("连接已关闭或者连接已被释放");
         }
-        _logger.LogInformation("开始发送Ping 给服务器");
+        _logger.LogDebug("开始发送Ping 给服务器");
 
         await InnerSendHubMessage(Ping.Instance);
 

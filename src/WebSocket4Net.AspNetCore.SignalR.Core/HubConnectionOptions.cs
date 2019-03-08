@@ -10,6 +10,6 @@ namespace WebSocket4Net.AspNetCore.SignalRClient.Connection {
     }
     public Uri Uri { get; private set; }
     public ProtocolOption ProtocolOption { get; set; } = ProtocolOption.Json;
-    public IDictionary<string, string> Headers { get; set; }
+    public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
   }
 }
